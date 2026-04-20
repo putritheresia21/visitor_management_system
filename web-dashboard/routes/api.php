@@ -3,6 +3,11 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\Api\IdentityTypeController;
+use App\Http\Controllers\Api\NationalityTypeController;
+use App\Http\Controllers\Api\DepartemenController;
+use App\Http\Controllers\Api\EmployeeController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -17,3 +22,15 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+//get identity types
+Route::get('/identity-types', [IdentityTypeController::class, 'index']);
+
+//get nationality types
+Route::get('/nationality-types', [NationalityTypeController::class, 'index']);
+
+//get departemen
+Route::get('/departements', [App\Http\Controllers\Api\DepartemenController::class, 'index']);
+
+//get employees
+Route::get('/employees', [App\Http\Controllers\Api\EmployeeController::class, 'index']);
