@@ -1,79 +1,135 @@
 package com.example.visitormanagementapp.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.visitormanagementapp.viewmodel.RegisterViewModel
+import kotlinx.coroutines.launch
 
 @Composable
-fun RegistrationScreen() {
-    val steps = listOf("First Form")
+fun RegistrationScreen(
+    viewModel: RegisterViewModel = viewModel()
+) {
+    val steps = listOf("Profile", "Visit")
     var currentStep by remember { mutableIntStateOf(1) }
     val totalSteps = steps.size
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .safeDrawingPadding()
-    ) {
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(150.dp)
-                .padding(16.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFF6200EE)),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        bottomBar = {
+            Surface(
+                color = Color.White,
+                shadowElevation = 8.dp
             ) {
-                Text(
-                    text = "Welcome Visitor",
-                    color = Color.White,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "Please fill in the form below",
-                    color = Color.White.copy(alpha = 1f),
-                    fontSize = 16.sp
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    if (currentStep > 1) {
+                        Button(
+                            onClick = { currentStep-- },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+                        ) {
+                            Text("Previous", color = Color.White)
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.size(1.dp))
+                    }
+
+                    if (currentStep < totalSteps) {
+                        Button(
+                            onClick = {
+                                if (currentStep == 1) {
+                                    if (viewModel.isProfileFormValid()) {
+                                        currentStep++
+                                    } else {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar("Harap lengkapi semua field")
+                                        }
+                                    }
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6200EE))
+                        ) {
+                            Text("Next", color = Color.White)
+                        }
+                    } else {
+//                        Button(
+//                            onClick = {
+//                                if (viewModel.isVisitFormValid()) {
+//                                    viewModel.submitRegistration()
+//                                } else {
+//                                    scope.launch {
+//                                        snackbarHostState.showSnackbar("Harap lengkapi dulu form ini")
+//                                    }
+//                                }
+//                            },
+//                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF03DAC5))
+//                        ) {
+//                            Text("Submit", color = Color.Black)
+//                        }
+                    }
+                }
             }
         }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp)
+                    .padding(16.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFF6200EE)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "Welcome Visitor",
+                        color = Color.White,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Please fill in the form below",
+                        color = Color.White,
+                        fontSize = 16.sp
+                    )
+                }
+            }
 
-        StepIndicator(currentStep = currentStep, totalSteps = totalSteps)
+            StepIndicator(currentStep = currentStep, totalSteps = totalSteps)
 
-        Box(modifier = Modifier.weight(1f)) {
-            when (currentStep) {
-                1 -> ProfileForm()
-
+            Box(modifier = Modifier.weight(1f)) {
+                when (currentStep) {
+                    1 -> VisitForm(viewModel = viewModel)
+                    2 -> VisitForm(viewModel = viewModel)
+                }
             }
         }
     }
@@ -95,12 +151,12 @@ fun StepIndicator(currentStep: Int, totalSteps: Int) {
                 modifier = Modifier
                     .size(30.dp)
                     .clip(CircleShape)
-                    .background(if (isActive) Color(0xFF03DAC5) else Color(0xFFE0E0E0)),
+                    .background(if (isActive) Color(0xFF406AAF) else Color(0xFFE0E0E0)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = i.toString(),
-                    color = if (isActive) Color.Black else Color.DarkGray,
+                    color = if (isActive) Color.White else Color.DarkGray,
                     fontWeight = FontWeight.Bold
                 )
             }

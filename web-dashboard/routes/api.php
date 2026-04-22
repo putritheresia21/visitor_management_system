@@ -31,6 +31,8 @@ Route::get('/nationality-types', [NationalityTypeController::class, 'index']);
 
 //get departemen
 Route::get('/departements', [App\Http\Controllers\Api\DepartemenController::class, 'index']);
+Route::get('/departements/{id}/employees', [App\Http\Controllers\Api\EmployeeController::class, 'getByDepartement']);
 
 //get employees
+Route::get('/employees/search/{number}', [App\Http\Controllers\Api\EmployeeController::class, 'getByNumber']);
 Route::get('/employees', [App\Http\Controllers\Api\EmployeeController::class, 'index']);

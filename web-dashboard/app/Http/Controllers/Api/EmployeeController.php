@@ -17,4 +17,31 @@ class EmployeeController extends Controller
             'data' => $employees
         ], 200);
     }
+
+    public function getByDepartement($id)
+    {
+        $employees = Employee::where('departement_id', $id)->get();
+    
+        return response()->json([
+            'success' => true,
+            'data' => $employees
+        ], 200);
+    }
+
+    public function getByNumber($number)
+    {
+        $employee = Employee::where('number_employee', $number)->first();
+    
+        if (!$employee) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Employee not found'
+            ], 404);
+        }
+    
+        return response()->json([
+            'success' => true,
+            'data' => $employee
+        ], 200);
+    }
 }
