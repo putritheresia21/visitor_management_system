@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 fun RegistrationScreen(
     viewModel: RegisterViewModel = viewModel()
 ) {
-    val steps = listOf("Profile", "Visit")
+    val steps = listOf("Profile", "Visit", "Confirmation")
     var currentStep by remember { mutableIntStateOf(1) }
     val totalSteps = steps.size
     val context = LocalContext.current
@@ -57,12 +57,23 @@ fun RegistrationScreen(
                     if (currentStep < totalSteps) {
                         Button(
                             onClick = {
-                                if (currentStep == 1) {
-                                    if (viewModel.isProfileFormValid()) {
-                                        currentStep++
-                                    } else {
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar("Harap lengkapi semua field")
+                                when (currentStep) {
+                                    1 -> {
+                                        if (viewModel.isProfileFormValid()) {
+                                            currentStep++
+                                        } else {
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar("Please complete the profile form")
+                                            }
+                                        }
+                                    }
+                                    2 -> {
+                                        if (viewModel.isVisitFormValid()) {
+                                            currentStep++
+                                        } else {
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar("Please complete the visit details")
+                                            }
                                         }
                                     }
                                 }
@@ -72,20 +83,15 @@ fun RegistrationScreen(
                             Text("Next", color = Color.White)
                         }
                     } else {
-//                        Button(
-//                            onClick = {
-//                                if (viewModel.isVisitFormValid()) {
-//                                    viewModel.submitRegistration()
-//                                } else {
-//                                    scope.launch {
-//                                        snackbarHostState.showSnackbar("Harap lengkapi dulu form ini")
-//                                    }
-//                                }
-//                            },
-//                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF03DAC5))
-//                        ) {
-//                            Text("Submit", color = Color.Black)
-//                        }
+                        Button(
+                            onClick = {
+                                viewModel.submitRegistration(context)
+                                Toast.makeText(context, "Registration Submitted!", Toast.LENGTH_SHORT).show()
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6200EE))
+                        ) {
+                            Text("Submit", color = Color.White)
+                        }
                     }
                 }
             }
@@ -127,8 +133,9 @@ fun RegistrationScreen(
 
             Box(modifier = Modifier.weight(1f)) {
                 when (currentStep) {
-                    1 -> VisitForm(viewModel = viewModel)
+                    1 -> ProfileForm(viewModel = viewModel)
                     2 -> VisitForm(viewModel = viewModel)
+                    3 -> ConfirmatonForm(viewModel = viewModel)
                 }
             }
         }
@@ -166,7 +173,7 @@ fun StepIndicator(currentStep: Int, totalSteps: Int) {
                     modifier = Modifier
                         .width(60.dp)
                         .height(2.dp)
-                        .background(if (i < currentStep) Color(0xFF03DAC5) else Color(0xFFE0E0E0))
+                        .background(if (i < currentStep) Color(0xFF406AAF) else Color(0xFFE0E0E0))
                 )
             }
         }

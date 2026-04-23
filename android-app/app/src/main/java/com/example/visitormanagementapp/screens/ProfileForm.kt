@@ -218,10 +218,10 @@ fun ProfileForm(
 
             OutlinedTextField(
                 value = viewModel.identityNumber,
-                onValueChange = { if (it.all { char -> char.isDigit() }) viewModel.identityNumber = it },
+                onValueChange = { viewModel.identityNumber = it },
                 label = { Text("ID Number", fontSize = 12.sp, color = Color.Black) },
                 modifier = Modifier.weight(1f),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                //keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 textStyle = TextStyle(fontSize = 14.sp, color = Color.Black),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF6200EE),

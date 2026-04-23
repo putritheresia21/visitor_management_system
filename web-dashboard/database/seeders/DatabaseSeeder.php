@@ -26,6 +26,8 @@ class DatabaseSeeder extends Seeder
             DepartemenSeeder::class,
             EmployeeSeeder::class,
             AreaVisitSeeder::class,
+            VisitorSeeder::class,
+            VisitSeeder::class,
         ]);
     }
 }

@@ -30,8 +30,8 @@ return new class extends Migration
                     ->constrained('areas_visits')
                     ->onDelete('restrict');
             
-            $table->string('employee_name');
-            $table->string('employee_phone');
+            // $table->string('employee_name');
+            // $table->string('employee_phone');
 
             $table->timestamps();
         });

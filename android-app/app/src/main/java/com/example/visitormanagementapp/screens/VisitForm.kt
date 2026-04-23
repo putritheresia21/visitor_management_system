@@ -20,8 +20,10 @@ fun VisitForm(
 ) {
     var expandedDepartement by remember { mutableStateOf(false) }
     var expandedEmployee by remember { mutableStateOf(false) }
+    var expandedAreaVisit by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
+        viewModel.getAreaVisits()
         if (viewModel.departementList.isEmpty()) {
             viewModel.getDepartements()
         }
@@ -94,6 +96,7 @@ fun VisitForm(
                                 viewModel.selectedDepartementId = dept.id
                                 viewModel.employeeText = "" 
                                 viewModel.employeeNumber = ""
+                                viewModel.employeePhone = ""
                                 viewModel.selectedEmployeeId = null
                                 expandedDepartement = false
                                 viewModel.getEmployeesByDepartmentId(dept.id)
@@ -156,6 +159,7 @@ fun VisitForm(
                                 onClick = {
                                     viewModel.employeeText = employee.name ?: ""
                                     viewModel.employeeNumber = employee.numberEmployee ?: ""
+                                    viewModel.employeePhone = employee.phoneNumber ?: ""
                                     viewModel.selectedEmployeeId = employee.id
                                     expandedEmployee = false
                                 }
@@ -181,7 +185,7 @@ fun VisitForm(
 
         OutlinedTextField(
             value = viewModel.employeePhone,
-            onValueChange = { viewModel.onEmployeeNumberChange(it)},
+            onValueChange = { viewModel.employeePhone = it },
             label = { Text("Whatsapp Employee", fontSize = 12.sp, color = Color.Black) },
             modifier = Modifier.fillMaxWidth(),
             textStyle = TextStyle(fontSize = 14.sp, color = Color.Black),
@@ -191,5 +195,54 @@ fun VisitForm(
             )
         )
 
+        ExposedDropdownMenuBox(
+            expanded = expandedAreaVisit,
+            onExpandedChange = { expandedAreaVisit = !expandedAreaVisit }
+        ) {
+            OutlinedTextField(
+                value = viewModel.areaVisitText,
+                onValueChange = {},
+                label = {Text("Area Visit", fontSize = 12.sp, color = Color.Black)},
+                readOnly = true,
+                trailingIcon = {
+                    if (viewModel.isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.padding(12.dp), strokeWidth = 2.dp)
+                    } else{
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedAreaVisit)
+                    }
+                },
+                modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable, true).fillMaxWidth(),
+                textStyle = TextStyle(fontSize = 14.sp, color = Color.Black),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF6200EE),
+                    unfocusedBorderColor = Color(0xFF831C91)
+                )
+            )
+            
+            ExposedDropdownMenu(
+                expanded = expandedAreaVisit,
+                onDismissRequest = { expandedAreaVisit = false }
+            ) {
+                if (viewModel.areaVisitList.isEmpty() && !viewModel.isLoading) {
+                    DropdownMenuItem(
+                        text = { Text("No areas available") },
+                        onClick = { expandedAreaVisit = false }
+                    )
+                } else {
+                    viewModel.areaVisitList.forEach { area ->
+                        DropdownMenuItem(
+                            text = { Text(area.areaVisitName ?: "") },
+                            onClick = {
+                                viewModel.areaVisitText = area.areaVisitName ?: ""
+                                viewModel.selectedAreaVisitId = area.id
+                                expandedAreaVisit = false
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
     }
+
 }

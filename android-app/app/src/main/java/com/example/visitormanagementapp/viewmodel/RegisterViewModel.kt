@@ -1,5 +1,6 @@
 package com.example.visitormanagementapp.viewmodel
 
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
@@ -12,11 +13,17 @@ import com.example.visitormanagementapp.model.IdType
 import com.example.visitormanagementapp.model.Nationality
 import com.example.visitormanagementapp.model.Employee
 import com.example.visitormanagementapp.model.Departement
+import com.example.visitormanagementapp.model.AreaVisit
 
 import com.example.visitormanagementapp.network.RetrofitClient
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 
 class RegisterViewModel : ViewModel() {
 
@@ -34,6 +41,8 @@ class RegisterViewModel : ViewModel() {
     //state detail kunjungan
     var departementText by mutableStateOf("")
     var selectedDepartementId by mutableStateOf<Int?>(null)
+    var areaVisitText by mutableStateOf("")
+    var selectedAreaVisitId by mutableStateOf<Int?>(null)
     var employeeText by mutableStateOf("")
     var employeeNumber by mutableStateOf("")
     var selectedEmployeeId by mutableStateOf<Int?>(null)
@@ -48,6 +57,8 @@ class RegisterViewModel : ViewModel() {
         private set
     var departementList by mutableStateOf<List<Departement>>(emptyList())
         private set
+    var areaVisitList by mutableStateOf<List<AreaVisit>>(emptyList())
+        private set
     var employeeList by mutableStateOf<List<Employee>>(emptyList())
         private set
 
@@ -60,21 +71,6 @@ class RegisterViewModel : ViewModel() {
     var isSubmitSuccess by mutableStateOf(false)
         private set
 
-    fun isProfileFormValid(): Boolean {
-        return name.isNotBlank() &&
-                email.isNotBlank() &&
-                phoneNumber.isNotBlank() &&
-                identityNumber.isNotBlank() &&
-                selectedIdentityId != null &&
-                selectedNationalityId != null &&
-                company.isNotBlank()
-    }
-
-    fun isVisitFormValid(): Boolean {
-        return visitPurpose.isNotBlank() &&
-                selectedDepartementId != null &&
-                selectedEmployeeId != null
-    }
 
     private var searchJob: Job? = null
 
@@ -144,6 +140,22 @@ class RegisterViewModel : ViewModel() {
         }
     }
 
+    fun getAreaVisits() {
+        viewModelScope.launch {
+            isLoading = true
+            try {
+                val response = RetrofitClient.instance.getAreaVisits()
+                if (response.success) {
+                    areaVisitList = response.data
+                }
+            } catch (e: Exception) {
+                errorMessage = "gagal ambil daftar area: ${e.message}"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
     fun getEmployeesByDepartmentId(departmentId: Int) {
         viewModelScope.launch {
             isLoading = true
@@ -190,9 +202,81 @@ class RegisterViewModel : ViewModel() {
         }
     }
 
+    fun isProfileFormValid(): Boolean {
+        return name.isNotBlank() &&
+                email.isNotBlank() &&
+                phoneNumber.isNotBlank() &&
+                identityNumber.isNotBlank() &&
+                selectedIdentityId != null &&
+                selectedNationalityId != null &&
+                company.isNotBlank() &&
+                pictureUri != null
+    }
+
+    fun isVisitFormValid(): Boolean {
+        return visitPurpose.isNotBlank() &&
+                selectedDepartementId != null &&
+                selectedEmployeeId != null &&
+                selectedAreaVisitId != null
+    }
+
+    fun submitRegistration(context: Context) {
+        Log.d("RegisterViewModel", "submitRegistration dipanggil")
+        viewModelScope.launch{
+            isLoading = true
+            Log.d("RegisterViewModel", "launching coroutine")
+            try {
+                Log.d("RegisterViewModel", "name: $name, phone: $phoneNumber")
+                val photoPart = pictureUri?.let { uri ->
+                    val inputStream = context.contentResolver.openInputStream(uri)
+                    val tempFile = File.createTempFile("Upload_", ".jpg", context.cacheDir)
+                    inputStream?.use { input ->
+                        tempFile.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    MultipartBody.Part.createFormData(
+                        "photo",
+                        tempFile.name,
+                        tempFile.asRequestBody("image/*".toMediaType())
+                    )
+                }
+
+                Log.d("RegisterViewModel", "hit API sekarang...")
 
 
-    fun submitRegistration() {
-        isSubmitSuccess = true
+                val response = RetrofitClient.instance.registerVisitor(
+                    name = name.toRequestBody("text/plain".toMediaType()),
+                    phone = phoneNumber.toRequestBody("text/plain".toMediaType()),
+                    email = email.toRequestBody("text/plain".toMediaType()),
+                    identityTypeId = selectedIdentityId.toString().toRequestBody("text/plain".toMediaType()),
+                    identityNumber = identityNumber.toRequestBody("text/plain".toMediaType()),
+                    nationalityId = selectedNationalityId.toString().toRequestBody("text/plain".toMediaType()),
+                    company = company.toRequestBody("text/plain".toMediaType()),
+
+                    purpose = visitPurpose.toRequestBody("text/plain".toMediaType()),
+                    employeeId = selectedEmployeeId.toString().toRequestBody("text/plain".toMediaType()),
+                    departementId = selectedDepartementId.toString().toRequestBody("text/plain".toMediaType()),
+                    areaVisitId   = selectedAreaVisitId.toString().toRequestBody("text/plain".toMediaType()),
+//                    employeeName = employeeText.toRequestBody("text/plain".toMediaType()),
+//                    employeePhone = employeePhone.toRequestBody("text/plain".toMediaType()),
+                    photo = photoPart
+                )
+
+                Log.d("RegisterViewModel", "response: ${response.success}")
+
+                if (response.success) {
+                    isSubmitSuccess = true
+                } else {
+                    errorMessage = response.message
+                }
+
+            } catch (e: Exception) {
+                errorMessage = "gagal kirim data: ${e.message}"
+                Log.e("RegisterViewModel", "Error submitting: ${e.message}")
+            } finally {
+                isLoading = false
+            }
+        }
     }
 }

@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\IdentityTypeController;
 use App\Http\Controllers\Api\NationalityTypeController;
 use App\Http\Controllers\Api\DepartemenController;
 use App\Http\Controllers\Api\EmployeeController;
+use App\Http\Controllers\Api\AreaVisitController;
+use App\Http\Controllers\Api\VisitController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,3 +38,12 @@ Route::get('/departements/{id}/employees', [App\Http\Controllers\Api\EmployeeCon
 //get employees
 Route::get('/employees/search/{number}', [App\Http\Controllers\Api\EmployeeController::class, 'getByNumber']);
 Route::get('/employees', [App\Http\Controllers\Api\EmployeeController::class, 'index']);
+
+// AreaVisit
+Route::get('/area-visits', [App\Http\Controllers\Api\AreaVisitController::class, 'index']);
+// Route::post('/area-visits', [App\Http\Controllers\Api\AreaVisitController::class, 'store']);
+// Route::get('/area-visits/{id}', [App\Http\Controllers\Api\AreaVisitController::class, 'show']);
+// Route::put('/area-visits/{id}', [App\Http\Controllers\Api\AreaVisitController::class, 'update']);
+// Route::delete('/area-visits/{id}', [App\Http\Controllers\Api\AreaVisitController::class, 'destroy']);
+
+Route::post('/visits', [App\Http\Controllers\Api\VisitController::class, 'addVisit']);

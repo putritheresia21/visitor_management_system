@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('phone');
             $table->string('email');
+            $table->string('identity_number')->unique();
 
             $table->foreignId('identity_type_id')
                     ->constrained()
